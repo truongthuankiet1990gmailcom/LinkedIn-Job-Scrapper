@@ -8,6 +8,9 @@ import re
 from collections import Counter
 from datetime import datetime, timedelta
 import io
+import subprocess
+import sys
+import os
 
 # Configure page
 st.set_page_config(
@@ -193,10 +196,7 @@ def load_data():
     try:
         # Try multiple possible file names
         possible_files = [
-            'dataset_fast-linkedin-jobs-scraper_2025-09-30_04-48-34-346.csv',
             'dataset.csv',
-            'jobs_data.csv',
-            'linkedin_jobs.csv'
         ]
         
         for filename in possible_files:
@@ -221,10 +221,61 @@ def load_data():
         st.error(f"❌ Error loading dataset: {str(e)}")
         return None
 
+def refresh_data():
+    """Refresh the dataset by running the scraper"""
+    try:
+        with st.spinner("🔄 Scraping new LinkedIn job data... This may take a few minutes."):
+            # Run the refresh_data.py script
+            result = subprocess.run([sys.executable, "refresh_data.py"], 
+                                  capture_output=True, text=True, cwd=os.getcwd())
+            
+            if result.returncode == 0:
+                st.success("✅ Data refresh completed successfully!")
+                st.info("📊 New jobs have been added to your dataset. Please refresh the page to see the updated data.")
+                # Clear cache to reload data
+                st.cache_data.clear()
+                return True
+            else:
+                st.error(f"❌ Error during data refresh: {result.stderr}")
+                return False
+                
+    except Exception as e:
+        st.error(f"❌ Error running data refresh: {str(e)}")
+        return False
+
 def main():
     # Header
     st.markdown('<h1 class="main-header">💼 LinkedIn Job Market Analyzer</h1>', unsafe_allow_html=True)
     st.markdown("### Data-Driven Insights for Job Seekers and Employers")
+    
+    # Sidebar for data management
+    with st.sidebar:
+        st.header("🔄 Data Management")
+        
+        # Data refresh section
+        st.subheader("Refresh Dataset")
+        st.write("Click below to scrape new LinkedIn job data and append it to your existing dataset.")
+        
+        if st.button("🔄 Refresh Data", type="primary", help="Scrape new jobs from LinkedIn and add to dataset"):
+            refresh_data()
+        
+        st.markdown("---")
+        
+        # Dataset info in sidebar
+        if os.path.exists("dataset.csv"):
+            try:
+                df_info = pd.read_csv("dataset.csv")
+                st.metric("📊 Current Jobs", len(df_info))
+                
+                if 'postDate' in df_info.columns:
+                    try:
+                        df_info['postDate'] = pd.to_datetime(df_info['postDate'])
+                        latest_date = df_info['postDate'].max().strftime('%Y-%m-%d')
+                        st.metric("📅 Latest Job", latest_date)
+                    except:
+                        pass
+            except:
+                pass
     
     # Add deployment info
     st.markdown("---")

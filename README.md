@@ -8,8 +8,8 @@
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)
 
 ## 🚀 Live Demo
-
-**[Deploy Your Own Instance](https://streamlit.io/cloud)** - Follow our deployment guide below
+- **Link demo for my version:** https://linkedin-job-scrapper-k8rqeyrwgpv79uynpa3fwm.streamlit.app/
+- **[Deploy Your Own Instance](https://streamlit.io/cloud)** - Follow our deployment guide below
 
 ---
 
